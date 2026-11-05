@@ -1,0 +1,16 @@
+{
+  "name": "magnific-credit-monitor",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "mock": "npm run mock --workspace server",
+    "dev": "npm run dev --workspace server",
+    "build": "npm run build --workspace web && npm run build --workspace server",
+    "start": "npm run start --workspace server",
+    "test": "npm run test --workspace server"
+  }
+}

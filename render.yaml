@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: magnific-credit-monitor
+    runtime: docker
+    plan: free
+    envVars:
+      - key: MOCK
+        value: "false"
+      - key: PORT
+        value: "8787"
+      - key: SNAPSHOT_INTERVAL_MINUTES
+        value: "15"
+      - key: ACCOUNTS
+        value: '[{"id":"nucleo01","label":"nucleo01 (trabalho)","renewalDay":6}]'
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false
+      - key: MAGNIFIC_OAUTH_CLIENT_ID
+        sync: false
+      - key: MAGNIFIC_REFRESH_TOKEN_NUCLEO01
+        sync: false
+    healthCheckPath: /api/accounts
