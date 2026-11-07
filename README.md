@@ -103,7 +103,7 @@ O free tier do Render não tem cron job nem disco persistente — por isso a col
 está acordado. Para garantir coleta regular mesmo com o app dormindo:
 
 1. Crie conta grátis em [cron-job.org](https://cron-job.org).
-2. Crie um job: URL = `https://<seu-app>.onrender.com/api/accounts`, intervalo = 15 min.
+2. Crie um job: URL = `https://<seu-app>.onrender.com/api/health`, intervalo = 15 min.
 3. Isso mantém o Render acordado, o que mantém o agendador interno de coleta rodando.
 
 ## Configuração de múltiplas contas

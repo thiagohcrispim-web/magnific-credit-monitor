@@ -34,7 +34,30 @@ export interface DashboardData {
   };
 }
 
+// Senha da API (só exigida quando o servidor define API_TOKEN). Fica salva neste navegador.
+const TOKEN_KEY = "apiToken";
+function authHeaders(): Record<string, string> {
+  try {
+    const t = localStorage.getItem(TOKEN_KEY);
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  } catch {
+    return {};
+  }
+}
+const nativeFetch = window.fetch.bind(window);
+const fetch = (input: string, init: RequestInit = {}) =>
+  nativeFetch(input, { ...init, headers: { ...(init.headers as Record<string, string>), ...authHeaders() } });
+
 async function json<T>(res: Response): Promise<T> {
+  if (res.status === 401) {
+    const t = window.prompt("Senha da API do Magnific Monitor:");
+    if (t) {
+      try {
+        localStorage.setItem(TOKEN_KEY, t.trim());
+      } catch {}
+      window.location.reload();
+    }
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -69,7 +92,8 @@ export const api = {
       `/api/creations?accountId=${encodeURIComponent(accountId)}&cycleId=${cycleId}&groupBy=${groupBy}&key=${encodeURIComponent(key)}`
     ).then((r) => json<Record<string, unknown>[]>(r)),
   exportCsvUrl: (accountId: string, cycleId: number) =>
-    `/api/export.csv?accountId=${encodeURIComponent(accountId)}&cycleId=${cycleId}`,
+    `/api/export.csv?accountId=${encodeURIComponent(accountId)}&cycleId=${cycleId}` +
+    (authHeaders().Authorization ? `&token=${encodeURIComponent(authHeaders().Authorization.slice(7))}` : ""),
   settings: (accountId: string) => fetch(`/api/settings?accountId=${encodeURIComponent(accountId)}`).then((r) => json<Record<string, string>>(r)),
   setSetting: (accountId: string, key: string, value: string) =>
     fetch("/api/settings", {
