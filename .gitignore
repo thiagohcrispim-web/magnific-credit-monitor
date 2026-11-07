@@ -9,3 +9,4 @@ build/
 *.db-shm
 data/
 .DS_Store
+*.tsbuildinfo
