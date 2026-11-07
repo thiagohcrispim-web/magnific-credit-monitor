@@ -5,6 +5,25 @@ import { forecastExhaustion } from "../calc/forecast.js";
 export function registerDashboardRoutes(app: FastifyInstance): void {
   const db = getDb();
 
+  // Saldo atual (último snapshot) de uma conta.
+  app.get<{ Querystring: { accountId: string } }>("/api/balance", async (req, reply) => {
+    const res = await db.execute({
+      sql: "SELECT taken_at, spent, available, total_plan FROM snapshots WHERE account_id = ? ORDER BY taken_at DESC LIMIT 1",
+      args: [req.query.accountId],
+    });
+    const row = res.rows[0];
+    if (!row) return reply.code(404).send({ error: "sem snapshot ainda" });
+    const available = Number(row.available);
+    const totalPlan = Number(row.total_plan);
+    return {
+      takenAt: row.taken_at,
+      spent: Number(row.spent),
+      available,
+      totalPlan,
+      remainingPct: totalPlan > 0 ? (available / totalPlan) * 100 : null,
+    };
+  });
+
   app.get("/api/accounts", async () => {
     const res = await db.execute("SELECT id, label, renewal_day FROM accounts ORDER BY label");
     return res.rows;
@@ -35,7 +54,7 @@ export function registerDashboardRoutes(app: FastifyInstance): void {
         sql: `SELECT c.*, p.name as project_name FROM creations c
               LEFT JOIN projects p ON p.reference = c.project_reference
               WHERE c.account_id = ? AND c.created_at >= ? AND c.created_at <= ?`,
-        args: [accountId, cycle.start_at as string, cycle.end_at as string],
+        args: [accountId, cycle.start_at as string, (cycle.end_at as string | null) ?? "9999-12-31"],
       });
       const creations = creationsRes.rows;
 
@@ -52,7 +71,7 @@ export function registerDashboardRoutes(app: FastifyInstance): void {
 
       const snapshotsRes = await db.execute({
         sql: `SELECT taken_at, spent FROM snapshots WHERE account_id = ? AND taken_at >= ? AND taken_at <= ? ORDER BY taken_at`,
-        args: [accountId, cycle.start_at as string, cycle.end_at as string],
+        args: [accountId, cycle.start_at as string, (cycle.end_at as string | null) ?? "9999-12-31"],
       });
       const cumulativeSeries = snapshotsRes.rows.map((r) => ({
         takenAt: r.taken_at as string,
@@ -75,7 +94,7 @@ export function registerDashboardRoutes(app: FastifyInstance): void {
         sql: `SELECT substr(created_at,1,10) as day, file_type, SUM(attributed_cost) as credits
               FROM creations WHERE account_id = ? AND created_at >= ? AND created_at <= ?
               GROUP BY day, file_type ORDER BY day`,
-        args: [accountId, cycle.start_at as string, cycle.end_at as string],
+        args: [accountId, cycle.start_at as string, (cycle.end_at as string | null) ?? "9999-12-31"],
       });
 
       return {
@@ -111,7 +130,7 @@ export function registerDashboardRoutes(app: FastifyInstance): void {
               WHERE c.account_id = ? AND c.created_at >= ? AND c.created_at <= ?
               AND (${column === "project_reference" ? "p.name" : "c." + column}) = ?
               ORDER BY c.created_at DESC LIMIT 200`,
-        args: [accountId, cycle.start_at as string, cycle.end_at as string, key],
+        args: [accountId, cycle.start_at as string, (cycle.end_at as string | null) ?? "9999-12-31", key],
       });
       return res.rows;
     }
@@ -131,7 +150,7 @@ export function registerDashboardRoutes(app: FastifyInstance): void {
             FROM creations c LEFT JOIN projects p ON p.reference = c.project_reference
             WHERE c.account_id = ? AND c.created_at >= ? AND c.created_at <= ?
             ORDER BY c.created_at`,
-      args: [accountId, cycle.start_at as string, cycle.end_at as string],
+      args: [accountId, cycle.start_at as string, (cycle.end_at as string | null) ?? "9999-12-31"],
     });
     const header = "created_at,file_type,tool,model,project,attributed_cost,confidence,web_url";
     const lines = res.rows.map((r) =>

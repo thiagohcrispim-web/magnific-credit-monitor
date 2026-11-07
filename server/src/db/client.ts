@@ -1,7 +1,7 @@
 import { createClient, type Client } from "@libsql/client";
-import { readFileSync, readdirSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -9,7 +9,13 @@ let client: Client | undefined;
 
 export function getDb(): Client {
   if (client) return client;
-  const url = process.env.DATABASE_URL ?? "file:./data/dev.db";
+  // Padrão: <raiz do repo>/data/dev.db (mesma pasta do token), independente de onde o comando roda.
+  let url = process.env.DATABASE_URL;
+  if (!url) {
+    const dataDir = join(__dirname, "..", "..", "..", "data");
+    mkdirSync(dataDir, { recursive: true });
+    url = pathToFileURL(join(dataDir, "dev.db")).href;
+  }
   const authToken = process.env.DATABASE_AUTH_TOKEN;
   client = createClient({ url, authToken });
   return client;

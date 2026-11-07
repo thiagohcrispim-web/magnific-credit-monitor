@@ -20,4 +20,12 @@ services:
         sync: false
       - key: MAGNIFIC_REFRESH_TOKEN_NUCLEO01
         sync: false
-    healthCheckPath: /api/accounts
+      - key: API_TOKEN
+        generateValue: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: ALERT_FROM
+        value: "Magnific Monitor <onboarding@resend.dev>"
+      - key: ALERT_EMAILS
+        sync: false
+    healthCheckPath: /api/health

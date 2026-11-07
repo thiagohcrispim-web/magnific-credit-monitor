@@ -1,6 +1,7 @@
 import PQueue from "p-queue";
 import type { Client } from "@libsql/client";
 import type { Provider } from "../providers/types.js";
+import { checkCreditAlerts } from "../alerts/alerts.js";
 import { detectCycles } from "../calc/cycles.js";
 import { attributeByInterval, type CreationForAttribution, type SnapshotRow } from "../calc/attribute.js";
 
@@ -38,6 +39,7 @@ export async function collectBalanceSnapshot(db: Client, accountId: string, prov
       args: [accountId, snapshot.takenAt],
     });
     await recomputeCycles(db, accountId);
+    await checkCreditAlerts(db, accountId);
   });
 }
 
