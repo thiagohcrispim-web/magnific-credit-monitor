@@ -39,7 +39,27 @@ async function json<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export interface AlertsInfo {
+  emails: string[];
+  thresholds: number[];
+  sentThisCycle: { threshold: number; sent_at: string; recipients: string }[];
+  emailConfigured: boolean;
+}
+
 export const api = {
+  alerts: (accountId: string) => fetch(`/api/alerts?accountId=${encodeURIComponent(accountId)}`).then((r) => json<AlertsInfo>(r)),
+  setAlertEmails: (accountId: string, emails: string) =>
+    fetch("/api/alerts/emails", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ accountId, emails }),
+    }).then((r) => json<{ ok: boolean; emails: string[] }>(r)),
+  testAlert: (accountId: string) =>
+    fetch("/api/alerts/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ accountId }),
+    }).then(async (r) => ({ ok: r.ok, ...(await r.json()) }) as { ok: boolean; error?: string }),
   accounts: () => fetch("/api/accounts").then((r) => json<Account[]>(r)),
   cycles: (accountId: string) => fetch(`/api/cycles?accountId=${encodeURIComponent(accountId)}`).then((r) => json<Cycle[]>(r)),
   dashboard: (accountId: string, cycleId: number) =>

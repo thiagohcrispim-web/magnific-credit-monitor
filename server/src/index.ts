@@ -1,3 +1,4 @@
+import "./env.js";
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
 import cron from "node-cron";
@@ -9,6 +10,7 @@ import { getDb, runMigrations } from "./db/client.js";
 import { seedMockData } from "./mock/generate.js";
 import { registerDashboardRoutes } from "./routes/dashboard.js";
 import { registerSettingsRoutes } from "./routes/settings.js";
+import { registerAlertRoutes } from "./routes/alerts.js";
 import { MagnificProvider } from "./providers/magnific/magnificProvider.js";
 import { collectBalanceSnapshot, syncCreations } from "./collectors/collector.js";
 
@@ -37,6 +39,7 @@ async function main() {
   const app = Fastify({ logger: true });
   registerDashboardRoutes(app);
   registerSettingsRoutes(app);
+  registerAlertRoutes(app);
 
   const webDist = join(__dirname, "..", "..", "web", "dist");
   if (existsSync(webDist)) {
