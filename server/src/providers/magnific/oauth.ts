@@ -77,7 +77,7 @@ export async function runManualLoginFlow(clientId: string): Promise<TokenSet> {
           reject(new Error("Resposta de callback inválida"));
           return;
         }
-        const redirectUri = `http://localhost:${port}/callback`;
+        const redirectUri = `http://localhost:${(server.address() as any).port}/callback`;
         const tokenRes = await fetch(metadata.token_endpoint, {
           method: "POST",
           headers: { "content-type": "application/x-www-form-urlencoded" },
