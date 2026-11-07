@@ -39,7 +39,8 @@ export function registerSecurity(app: FastifyInstance): void {
     if (req.method === "OPTIONS") return reply.code(204).send();
 
     const url = req.raw.url ?? "";
-    if (!url.startsWith("/api/") || url.startsWith("/api/health")) return;
+    const publicRoutes = ["/api/health", "/api/login", "/api/forgot-password"];
+    if (!url.startsWith("/api/") || publicRoutes.some((r) => url.startsWith(r))) return;
 
     const expected = process.env.API_TOKEN;
     if (!expected) return; // sem senha configurada (uso local)

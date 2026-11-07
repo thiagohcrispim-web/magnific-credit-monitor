@@ -12,6 +12,7 @@ import { registerDashboardRoutes } from "./routes/dashboard.js";
 import { registerSettingsRoutes } from "./routes/settings.js";
 import { registerAlertRoutes } from "./routes/alerts.js";
 import { registerSecurity } from "./http/security.js";
+import { registerAuthRoutes } from "./http/auth.js";
 import { MagnificProvider } from "./providers/magnific/magnificProvider.js";
 import { collectBalanceSnapshot, syncCreations } from "./collectors/collector.js";
 
@@ -39,6 +40,7 @@ async function main() {
 
   const app = Fastify({ logger: true });
   registerSecurity(app);
+  registerAuthRoutes(app);
   registerDashboardRoutes(app);
   registerSettingsRoutes(app);
   registerAlertRoutes(app);
